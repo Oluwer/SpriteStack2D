@@ -62,7 +62,7 @@ func _draw() -> void:
 	texture_count = textures.size()
 	
 	if always_face_to_camera and !Engine.is_editor_hint():
-		stack_offset = ( ( camera.get_screen_center_position() - global_position ) * offset_scale ).limit_length( offset_limit )
+		stack_offset = ( ( camera.get_screen_center_position() - global_position ) * offset_scale ).limit_length( offset_limit ) * -round( int(use_bottom_sprite_as_center) - 0.5 )
 	
 	if use_bottom_sprite_as_center:
 		for texture : int in range( 0 , texture_count - 1 ):
