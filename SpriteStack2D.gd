@@ -26,6 +26,7 @@ var offset_scale: float = 0.07:
 var use_bottom_sprite_as_center : bool = true :
 	set(value):
 		use_bottom_sprite_as_center = value
+		stack_offset = -stack_offset
 		queue_redraw()
 
 ##Offset of the sprite
@@ -67,7 +68,7 @@ func _draw() -> void:
 		for texture : int in range( 0 , texture_count - 1 ):
 			if textures[ texture ]:
 				var in_between : Vector2 = stack_offset / texture_count
-				draw_texture( textures[ texture ] , Vector2( center_offset.x , 0 ) - ( textures[ texture ].get_size() / 2 ) + ( -in_between * (texture + center_offset.y) ).rotated( -global_rotation ) )
+				draw_texture( textures[ texture ] , Vector2( center_offset.x , 0 ) - ( textures[ texture ].get_size() / 2 ) + ( in_between * (texture + center_offset.y) ).rotated( -global_rotation ) )
 	else:
 		for texture : int in range( texture_count - 1, -1, -1 ):
 			if textures[ texture ]:
