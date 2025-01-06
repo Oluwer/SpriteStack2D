@@ -22,13 +22,6 @@ var offset_scale: float = 0.07:
 		offset_scale = clamp( value , 0, 1 )
 		queue_redraw()
 
-## Uses the last drawn sprite as the center istead of the first one
-var use_bottom_sprite_as_center : bool = true :
-	set(value):
-		use_bottom_sprite_as_center = value
-		stack_offset = -stack_offset
-		queue_redraw()
-
 ##Offset of the sprite
 var center_offset : Vector2 = Vector2.ZERO :
 	set(value):
@@ -42,6 +35,13 @@ var stack_offset : Vector2 = Vector2.DOWN :
 		queue_redraw()
 		
 
+##Offset added to the current offset, made for customizing angles
+var static_offset : Vector2:
+	set(value):
+		static_offset = value
+		stack_offset = value
+		queue_redraw()
+
 ##Textures that will be stacked
 var textures : Array[Texture] = []:
 	set(value):
@@ -51,7 +51,9 @@ var textures : Array[Texture] = []:
 func _process(delta: float) -> void:
 	if !Engine.is_editor_hint():
 		queue_redraw()
+		rotate( 0.01 )
 		
+	
 
 var texture_count : int = textures.size() - 1
 
@@ -61,29 +63,18 @@ func _draw() -> void:
 	camera = get_viewport().get_camera_2d()
 	texture_count = textures.size()
 	
-	if always_face_to_camera and !Engine.is_editor_hint():
-		stack_offset = ( ( camera.get_screen_center_position() - global_position ) * offset_scale ).limit_length( offset_limit ) * -round( int(use_bottom_sprite_as_center) - 0.5 )
+	if always_face_to_camera and !Engine.is_editor_hint() and camera:
+		stack_offset = -( ( camera.get_screen_center_position() - global_position ) * offset_scale - static_offset ).limit_length( offset_limit )
+	elif always_face_to_camera and !Engine.is_editor_hint():
+		printerr( "Camera not found" )
 	
-	if use_bottom_sprite_as_center:
-		for texture : int in range( 0 , texture_count - 1 ):
-			if textures[ texture ]:
-				var in_between : Vector2 = stack_offset / texture_count
-				draw_texture( textures[ texture ] , Vector2( center_offset.x , 0 ) - ( textures[ texture ].get_size() / 2 ) + ( in_between * (texture + center_offset.y) ).rotated( -global_rotation ) )
-	else:
-		for texture : int in range( texture_count - 1, -1, -1 ):
-			if textures[ texture ]:
-				var in_between : Vector2 = stack_offset / texture_count
-				draw_texture( textures[ texture ] , Vector2( center_offset.x , 0 ) - ( textures[ texture ].get_size() / 2 ) + ( in_between * (texture + center_offset.y) ).rotated( -global_rotation ) )
-	
+	for texture : int in range( 0 , texture_count ):
+		if textures[ texture ]:
+			var in_between : Vector2 = stack_offset / texture_count
+			draw_texture( textures[ texture ] , Vector2( center_offset.x , 0 ) - ( textures[ texture ].get_size() / 2 ) + ( in_between * (texture + center_offset.y) ).rotated( -global_rotation ) )
 
 func _get_property_list() -> Array[Dictionary]:
 	var property_list : Array[Dictionary] = []
-	
-	property_list.append(
-		{
-			"name": "use_bottom_sprite_as_center",
-			"type": TYPE_BOOL
-		})
 	
 	property_list.append(
 		{
@@ -109,6 +100,12 @@ func _get_property_list() -> Array[Dictionary]:
 			"name": "offset_scale",
 			"type": TYPE_FLOAT,
 			})
+		
+		property_list.append(
+		{
+			"name": "static_offset",
+			"type": TYPE_VECTOR2
+		})
 	else:
 		property_list.append(
 		{
